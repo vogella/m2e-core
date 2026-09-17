@@ -1,0 +1,72 @@
+# Fork-only: builds the p2 repository and publishes it as an update site on GitHub Pages.
+name: Publish update site
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+# Allow one deployment at a time; do not cancel a running one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Never run in the upstream repository, which publishes its own update site.
+    if: github.repository == 'vogella/m2e-core'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      with:
+        java-version: |
+          17
+          21
+        distribution: 'temurin'
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v5
+      with:
+        maven-version: 3.9.11
+    - name: Cache local Maven repository
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml', '**/*.target') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+    - name: Build p2 repository
+      # tycho.baseline.replace=none keeps the freshly built jars instead of swapping in
+      # the published upstream artifacts, so the site really contains this fork's code.
+      run: >-
+        mvn clean package --batch-mode --threads 1C -DskipTests
+        -Dtycho.baseline.replace=none
+    - name: Verify the p2 repository was produced
+      run: |
+        if [ ! -f org.eclipse.m2e.repository/target/repository/artifacts.xml.xz ] \
+           && [ ! -f org.eclipse.m2e.repository/target/repository/artifacts.jar ]; then
+          echo "No p2 repository was produced"
+          exit 1
+        fi
+    - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+    - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      with:
+        path: org.eclipse.m2e.repository/target/repository
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
