@@ -41,11 +41,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
     - name: Build p2 repository
-      # tycho.baseline.replace=none keeps the freshly built jars instead of swapping in
-      # the published upstream artifacts, so the site really contains this fork's code.
+      # m2e-parent hard-codes baselineReplace=all, so without disabling the baseline
+      # Tycho serves the published upstream jars instead of the ones built here.
       run: >-
         mvn clean package --batch-mode --threads 1C -DskipTests
-        -Dtycho.baseline.replace=none
+        -Dtycho.p2.baselineMode=disable
     - name: Verify the p2 repository was produced
       run: |
         if [ ! -f org.eclipse.m2e.repository/target/repository/artifacts.xml.xz ] \
