@@ -174,6 +174,22 @@ public interface IMavenProjectFacade extends IMavenExecutableLocation {
   List<MojoExecution> getMojoExecutions(String groupId, String artifactId, IProgressMonitor monitor,
       String... goals) throws CoreException;
 
+  /**
+   * Resolves a configuration parameter from the given {@code mojoExecution}. It coerces from String to the given type
+   * and considers expressions and default values.
+   *
+   * @param <T>
+   * @param mojoExecution the mojo execution from which to retrieve the configuration value
+   * @param parameter the name of the parameter (may be nested with separating {@code .})
+   * @param asType the type to coerce to
+   * @param monitor the progress monitor
+   * @return the parameter value or {@code null} if the parameter with the given name was not found
+   * @throws CoreException
+   * @since 2.8
+   */
+  <T> T getMojoParameterValue(MojoExecution mojoExecution, String parameter, Class<T> asType,
+      IProgressMonitor monitor) throws CoreException;
+
   // lifecycle mapping
 
   String getLifecycleMappingId();

@@ -47,12 +47,10 @@ import org.eclipse.jdt.core.JavaCore;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 
 import org.eclipse.m2e.apt.internal.utils.ProjectUtils;
-import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.AbstractProjectConfigurator;
@@ -349,14 +347,7 @@ public abstract class AbstractAptConfiguratorDelegate implements AptConfigurator
 
   protected <T> T getParameterValue(String parameter, Class<T> asType, MojoExecution mojoExecution)
       throws CoreException {
-    PluginExecution execution = new PluginExecution();
-    execution.setConfiguration(mojoExecution.getConfiguration());
-    MavenProject mavenProject = mavenFacade.getMavenProject();
-    return mavenFacade.createExecutionContext().execute(mavenProject, (context, monitor) -> {
-      //TODO provide as part of the execution context? We then probably won't need the project parameter at all?
-      return MavenPlugin.getMaven().getMojoParameterValue(mavenProject, parameter, asType, mojoExecution.getPlugin(),
-          execution, mojoExecution.getGoal(), null);
-    }, null);
+    return mavenFacade.getMojoParameterValue(mojoExecution, parameter, asType, null);
   }
 
 }

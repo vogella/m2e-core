@@ -584,6 +584,13 @@ public class MavenProjectFacade implements IMavenProjectFacade, Serializable {
     return result;
   }
 
+  @Override
+  @SuppressWarnings("deprecation")
+  public <T> T getMojoParameterValue(MojoExecution mojoExecution, String parameter, Class<T> asType,
+      IProgressMonitor monitor) throws CoreException {
+    return manager.maven.getMojoParameterValue(getMavenProject(monitor), mojoExecution, parameter, asType, monitor);
+  }
+
   /**
    * Returns cached list of MojoExecutions bound to project's clean, default and site lifecycles. Returned
    * MojoExecutions are not fully setup and {@link IMaven#setupMojoExecution(MavenSession, MavenProject, MojoExecution)}
