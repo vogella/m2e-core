@@ -1,12 +1,26 @@
 # Eclipse m2e - Release notes
 
+## 2.12.0
+
+* 📅 Release Date: 31th August 2026
+
+Various bug-fixes, enhancements, clean-ups and dependency updates.
+
+### New IMavenProjectFacade.getMojoParameterValue methods
+
+Two `getMojoParameterValue()` methods were added to the `org.eclipse.m2e.core.project.IMavenProjectFacade` interface, which support retrieval of Mojo configuration parameters from a specific project.
+
+The existing two `IMaven.getMojoParameterValue()` methods were deprecated in favor of the two new methods.
+
 ## 2.11.1
 
-* 📅 Release Date: _expected_ beginning of June 2026
+* 📅 Release Date: 02nd June 2026
 
-### Embedded and use Maven 3.9.15
+Various bug-fixes, enhancements and dependency updates.
 
-Updated the embedded Maven from version 3.9.11 to 3.9.15; [Maven 3.9.15 Release Notes](https://maven.apache.org/docs/3.9.15/release-notes.html).
+### Embedded and use Maven 3.9.16
+
+Updated the embedded Maven from version 3.9.11 to 3.9.16; [Maven 3.9.16 Release Notes](https://maven.apache.org/docs/3.9.16/release-notes.html).
 
 ## 2.11.0
 
