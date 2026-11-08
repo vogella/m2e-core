@@ -2,9 +2,10 @@
 name: Publish update site
 
 on:
-  push:
-    branches:
-      - 'main'
+  # Disabled on push; restore the block below to publish on every push to main again.
+  # push:
+  #   branches:
+  #     - 'main'
   workflow_dispatch:
 
 # Allow one deployment at a time; do not cancel a running one.
