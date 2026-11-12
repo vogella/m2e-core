@@ -35,6 +35,7 @@ import org.eclipse.m2e.core.embedder.ArtifactRepositoryRef;
 import org.eclipse.m2e.core.embedder.IComponentLookup;
 import org.eclipse.m2e.core.embedder.IMavenExecutableLocation;
 import org.eclipse.m2e.core.embedder.IMavenExecutionContext;
+import org.eclipse.m2e.core.embedder.IMavenExecutionContextFactory;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 
@@ -45,7 +46,7 @@ import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
  * @noimplement This interface is not intended to be implemented by clients.
  * @author Igor Fedorenko
  */
-public interface IMavenProjectFacade extends IMavenExecutableLocation {
+public interface IMavenProjectFacade extends IMavenExecutableLocation, IMavenExecutionContextFactory {
 
   /**
    * Returns project relative paths of resource directories
@@ -174,6 +175,47 @@ public interface IMavenProjectFacade extends IMavenExecutableLocation {
   List<MojoExecution> getMojoExecutions(String groupId, String artifactId, IProgressMonitor monitor,
       String... goals) throws CoreException;
 
+  /**
+   * Resolves a configuration parameter from the given {@code mojoExecution}. It coerces from String to the given type
+   * and considers expressions and default values.
+   *
+   * @param <T>
+   * @param mojoExecution the mojo execution from which to retrieve the configuration value
+   * @param parameter the name of the parameter (may be nested with separating {@code .})
+   * @param asType the type to coerce to
+   * @param monitor the progress monitor
+   * @return the parameter value or {@code null} if the parameter with the given name was not found
+   * @throws CoreException
+   * @since 2.8
+   */
+  <T> T getMojoParameterValue(MojoExecution mojoExecution, String parameter, Class<T> asType,
+      IProgressMonitor monitor) throws CoreException;
+
+  /**
+   * Returns a new mojo instance configured according to the given {@code mojoExecution}. Callers must release the
+   * returned mojo with {@link #releaseMojo(Object, MojoExecution)}. This method is intended to allow introspection of
+   * mojo configuration parameters, therefore it deliberately returns {@link Object} instead of a Maven {@code Mojo}
+   * type to not bind clients to the Maven plugin API. If access to a concrete mojo implementation is required, use an
+   * <code>instanceof</code> check, or fall back to reflection.
+   *
+   * @param mojoExecution the mojo execution to create a configured mojo instance for
+   * @param monitor the progress monitor
+   * @return the configured mojo instance, never <code>null</code>
+   * @throws CoreException
+   * @since 3.0
+   */
+  Object getConfiguredMojo(MojoExecution mojoExecution, IProgressMonitor monitor) throws CoreException;
+
+  /**
+   * Releases resources used by a mojo acquired with {@link #getConfiguredMojo(MojoExecution, IProgressMonitor)}.
+   *
+   * @param mojo the mojo instance to release
+   * @param mojoExecution the mojo execution the mojo instance was created for
+   * @throws CoreException
+   * @since 3.0
+   */
+  void releaseMojo(Object mojo, MojoExecution mojoExecution) throws CoreException;
+
   // lifecycle mapping
 
   String getLifecycleMappingId();
@@ -181,9 +223,18 @@ public interface IMavenProjectFacade extends IMavenExecutableLocation {
   Map<MojoExecutionKey, List<IPluginExecutionMetadata>> getMojoExecutionMapping();
 
   /**
+   * Creates and returns a new maven execution context for this project.
+   * <p>
+   * Unlike {@link org.eclipse.m2e.core.embedder.IMaven#createExecutionContext() IMaven.createExecutionContext()},
+   * this context is <b>project-specific</b>: it includes the project's repositories, mirrors, settings and
+   * (project-scoped) extensions, so results are as close as possible to what an actual build of this project would
+   * produce.
+   * </p>
+   *
    * @return a project-specific Maven execution context.
    * @since 2.0
    */
+  @Override
   IMavenExecutionContext createExecutionContext();
 
   /**
