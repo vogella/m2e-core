@@ -34,9 +34,7 @@ import org.eclipse.core.runtime.Status;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
-import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.project.MavenProject;
 
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
@@ -177,14 +175,11 @@ public abstract class AbstractProjectConfigurator implements IExecutableExtensio
   }
 
   /**
-   * @since 1.4
+   * @since 2.8
    */
-  protected <T> T getParameterValue(MavenProject project, String parameter, Class<T> asType,
+  protected <T> T getParameterValue(IMavenProjectFacade projectFacade, String parameter, Class<T> asType,
       MojoExecution mojoExecution, IProgressMonitor monitor) throws CoreException {
-    PluginExecution execution = new PluginExecution();
-    execution.setConfiguration(mojoExecution.getConfiguration());
-    return maven.getMojoParameterValue(project, parameter, asType, mojoExecution.getPlugin(), execution,
-        mojoExecution.getGoal(), monitor);
+    return projectFacade.getMojoParameterValue(mojoExecution, parameter, asType, monitor);
   }
 
   protected void assertHasNature(IProject project, String natureId) throws CoreException {
